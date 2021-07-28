@@ -37,12 +37,15 @@ static inline void sniffles_program_init(PIO pio, uint sm, uint offset, uint pin
     // pin, and the next-numbered GPIO is used as the clock pin. The third
     // numbered pin is the latch pin.
     sm_config_set_in_pins(&c, pin);
+
     // Set the pin directions to input at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 3, false);
+
     // Connect these GPIOs to this PIO block
-    pio_gpio_init(pio, pin);
-    pio_gpio_init(pio, pin + 1);
-    pio_gpio_init(pio, pin + 2);
+    // ONLY NECESSARY IF USED AS OUTPUTS?
+    //pio_gpio_init(pio, pin);
+    //pio_gpio_init(pio, pin + 1);
+    //pio_gpio_init(pio, pin + 2);
 
     // Shifting to left, 16 bit data size
     sm_config_set_in_shift(

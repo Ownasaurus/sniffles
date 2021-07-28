@@ -34,13 +34,13 @@ int main() {
     while (true)
     {
 	buttons = pio_sm_get(pio, sm);
-	for(int x = 0;x < BUF_SIZE;x++)
+	for(int x = BUF_SIZE-1;x >= 0;x--)
 	{
 		display[x] = (buttons & 1) ? unpressed : pressed[x];
 		buttons >>= 1;
 	}
         printf("%s\n",display);
-        sleep_ms(1000); // just temp to not overwhelm CDC
+        //sleep_ms(1000); // just temp to not overwhelm CDC
     }
 
     return 0;
