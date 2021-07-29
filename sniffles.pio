@@ -6,6 +6,9 @@
 
 .program sniffles
 
+; TODO: new idea: spinloop waiting for EITHER high lat OR low CLK. that way it can
+; exit early. disable autopush. push on lat. pre-fill with all 0s at start. 
+
 ; Sample bits using an external clock, and push groups of bits into the RX FIFO.
 ; - IN pin 0 is the data pin
 ; - IN pin 1 is the clock pin
