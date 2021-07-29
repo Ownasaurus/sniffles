@@ -1,0 +1,68 @@
+;
+; Copyright (c) 2021 Raspberry Pi (Trading) Ltd.
+;
+; SPDX-License-Identifier: BSD-3-Clause
+;
+
+.program sniffles
+
+; TODO: new idea: spinloop waiting for EITHER high lat OR low CLK. that way it can
+; exit early. disable autopush. push on lat. pre-fill with all 0s at start. 
+
+; Sample bits using an external clock, and push groups of bits into the RX FIFO.
+; - IN pin 0 is the data pin
+; - IN pin 1 is the clock pin
+; - IN pin 2 is the latch pin
+; - Autopush is enabled, threshold 16
+;
+; This program samples data with each rising clock edge (like mode 0 or mode 3
+; SPI). The data is actually sampled one system clock cycle after the rising
+; edge is observed, so a clock ratio of at least input_clk < clk_sys / 6 is
+; recommended for good sampling alignment.
+
+    wait 1 pin 2
+    wait 0 pin 2 ; now latch pulse is complete
+
+    set x, 15 ; loop for 16 clk pulses
+clk_loop:
+    wait 0 pin 1
+    wait 1 pin 1 ; read on clk rising edge
+    in pins, 1; read the data pin?
+    jmp x-- clk_loop ; end of clk loop
+
+    ; autopush should automatically write the data back to the main program
+
+% c-sdk {
+static inline void sniffles_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    pio_sm_config c = sniffles_program_get_default_config(offset);
+
+    // Set the IN base pin to the provided `pin` parameter. This is the data
+    // pin, and the next-numbered GPIO is used as the clock pin. The third
+    // numbered pin is the latch pin.
+    sm_config_set_in_pins(&c, pin);
+
+    // Set the pin directions to input at the PIO
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 3, false);
+
+    // Connect these GPIOs to this PIO block
+    // ONLY NECESSARY IF USED AS OUTPUTS?
+    //pio_gpio_init(pio, pin);
+    //pio_gpio_init(pio, pin + 1);
+    //pio_gpio_init(pio, pin + 2);
+
+    // Shifting to left, 16 bit data size
+    sm_config_set_in_shift(
+        &c,
+        false, // Shift-to-right = false (i.e. shift to left)
+        true,  // Autopush enabled
+        16      // Autopush threshold = 16
+    );
+
+    // We only receive, so disable the TX FIFO to make the RX FIFO deeper.
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+
+    // Load our configuration, and start the program from the beginning
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
