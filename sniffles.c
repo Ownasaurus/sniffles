@@ -26,7 +26,7 @@ int main() {
     sniffles_program_init(pio, sm, offset, BASE_PIN);
 
     const char unpressed = '-';
-    const char pressed [BUF_SIZE];
+    char pressed [BUF_SIZE];
     strncpy(pressed,"BYsSUDLRXAlr1234",BUF_SIZE);
     uint16_t buttons = 0;
     char display[BUF_SIZE];
